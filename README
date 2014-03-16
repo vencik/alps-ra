@@ -94,3 +94,11 @@ the documentation in ./b/Documentation/input/alps.txt, and read the code.
 
 If you are sucessfull, don't forget to document your findings in the text
 file above and create and post a patch.
+
+
+Legal notice
+------------
+
+alps-ra project is an open source project available under the terms of
+the BSD (3-clause) license.
+See LICENSE file for more information.
