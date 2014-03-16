@@ -8,7 +8,7 @@ use warnings;
 # Set (and implement, if necessary) accordingly to your device
 # For starters, you may set it thus to simply get packet bitwise dump
 #*decode_packet = "dump_packet";
-*decode_packet = "decode_packet_v6";
+*decode_packet = "decode_packet_v7";
 
 
 # Get bistring of a byte (masking ignored bits)
@@ -57,8 +57,8 @@ sub signed($$) {
 }
 
 
-# Decode touch event packet (AlpsPS/2 v6)
-sub decode_touch_packet_v6(@) {
+# Decode touch event packet (AlpsPS/2 v7)
+sub decode_touch_packet_v7(@) {
     my ($B0, $B1, $B2, $B3, $B4, $B5) = @_;
 
     # Check touch packet invariant
@@ -115,8 +115,8 @@ sub decode_touch_packet_v6(@) {
 }
 
 
-# Decode touch idle packet (AlpsPS/2 v6)
-sub decode_touch_idle_packet_v6(@) {
+# Decode touch idle packet (AlpsPS/2 v7)
+sub decode_touch_idle_packet_v7(@) {
     my ($B0, $B1, $B2, $B3, $B4, $B5) = @_;
 
     # Check touch idle packet invariant
@@ -130,8 +130,8 @@ sub decode_touch_idle_packet_v6(@) {
 }
 
 
-# Decode trackstick packet (AlpsPS/2 v6)
-sub decode_trackstick_packet_v6(@) {
+# Decode trackstick packet (AlpsPS/2 v7)
+sub decode_trackstick_packet_v7(@) {
     my ($B0, $B1, $B2, $B3, $B4, $B5) = @_;
 
     # Check trackstick packet invariant
@@ -200,8 +200,8 @@ sub decode_trackstick_packet_v6(@) {
 }
 
 
-# Decode packet (AlpsPS/2 v6)
-sub decode_packet_v6(@) {
+# Decode packet (AlpsPS/2 v7)
+sub decode_packet_v7(@) {
     my ($B0, $B1, $B2, $B3, $B4, $B5) = @_;
 
     # Check fixed bits hypothesis
@@ -213,13 +213,13 @@ sub decode_packet_v6(@) {
     }
 
     # Touch event packet (detection based on i ^ !i)
-    (((0x10 & $B0) << 2) ^ (0x40 & $B4)) && return decode_touch_packet_v6(@_);
+    (((0x10 & $B0) << 2) ^ (0x40 & $B4)) && return decode_touch_packet_v7(@_);
 
     # Trackstick packet
-    (0xe8 == (0xec & $B1)) && return decode_trackstick_packet_v6(@_);
+    (0xe8 == (0xec & $B1)) && return decode_trackstick_packet_v7(@_);
 
     # Touch idle packet
-    (0x00 == $B1) && return decode_touch_idle_packet_v6(@_);
+    (0x00 == $B1) && return decode_touch_idle_packet_v7(@_);
 
     # Unknown packet type
     print("    UNKNOWN PACKET FORMAT\n");
