@@ -1,0 +1,96 @@
+ALPS Input Devices Reverse Analysis Tools
+=========================================
+
+This small project was created to simplify the steps necessary to start
+RA of devices controlled by the ALPS sub-driver of psmouse Linux driver.
+
+Since ALPS Electric traditionally assumes dismissive position towards
+any requests for technical documentation, writing driver for touchpads
+and trackpoints they manufacture requires detailed reverse analysis
+of the communication protocol.
+At the time of writing this, no less than 6 different protocols are in use
+for ALPS (dualpoint) touchpads.
+
+
+Usage
+-----
+
+For simplicity and to save time, it's rather nice to compile the psmouse
+driver with your changes out of the kernel tree to get a RA and debugging
+driver.
+
+You shall need your Linux kernel headers installed, the kernel source tarball
+and the GNU gcc compiler and Linux kernel compilation tools, of course.
+On Debian and its derivatives, the following should get you all you need for
+kernel building (run as root):
+
+----
+# apt-get install linux-headers linux-source kernel-package fakeroot perl
+----
+
+The set_source.sh script extracts the psmouse driver and the ALPS sub-driver
+documentation from supplied source tarball and creates a copy to enable
+creation of kernel patch later.
+
+----
+$ ./set_source.sh /usr/src/linux-source-<version>.tar.xz
+----
+
+Directories ./a and ./b shall be created.
+The psmouse driver Makefile in ./b/drivers/input/mouse/ directory is replaced
+by out-of-tree version also containing a few RA-specific targets.
+
+----
+$ cd ./b/drivers/input/mouse
+$ make help
+----
+
+The install_ra_hook and uninstall_a_hook targets will (attempt to) add/remove
+one source line to.from alps.c, function alps_process_byte, that will include
+a small amount of code used to dump the packets obtained from the device
+to the kernel ring buffer.
+The code shall be referenced as RA hook.
+
+The RA hook installed to the sub-driver source may be configured in
+Makefile.config file (sourced from Makefile).
+By default, 6 byte packets are assumed.
+The packets shall be dumped and further processing of the packets shan't
+be done.
+
+----
+$ make instal_ra_hook
+$ make
+$ make load
+----
+
+The show_pkt target calls show_pkt.pl script used to grep the packets dump
+from the kernel ring buffer and visualise them.
+The script may also be used to test hypotheses and formulate packet decoding
+routines (as was done for the protocol v6).
+
+Typically, you touch the device, then check the packets produced:
+
+----
+$ make show_pkt
+----
+
+Then, formulate a hypothesis, implement its check in the show_pkt.pl script
+and try again.
+And again.
+And again...
+
+Be patient, the process tends to be quite teadious.
+
+When you think you know what to do, implement the protocol decoding in
+alps.[ch], allow processing of the packets in Makefile.config
+and check the result:
+
+----
+$ make load
+----
+
+This HOWTO isn't a good place to explain how to implement the driver; read
+the documentation in ./b/Documentation/input/alps.txt, and read the code.
+
+If you are sucessfull, don't forget to document your findings in the text
+file above and create and post a patch.

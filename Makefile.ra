@@ -1,0 +1,84 @@
+
+
+include Makefile.config
+
+
+ccflags-$(CONFIG_MOUSE_PS2_ALPS) += -DALPS_PACKET_SIZE=$(ALPS_PACKET_SIZE)
+
+ifeq ($(ALPS_PACKET_DUMP), yes)
+ccflags-$(CONFIG_MOUSE_PS2_ALPS) += -DALPS_PACKET_DUMP
+endif
+
+ifeq ($(ALPS_PACKET_NO_PROCESS), yes)
+ccflags-$(CONFIG_MOUSE_PS2_ALPS) += -DALPS_PACKET_NO_PROCESS
+endif
+
+
+KVERSION = $(shell uname -r)
+
+
+.PHONY: alps.patch
+
+
+all: backup
+	make -I$(PWD) -C /lib/modules/$(KVERSION)/build M=$(PWD) modules
+
+backup: alps.h.bkp alps.c.bkp
+
+%.bkp: %
+	test -f $@ || cp $< $@
+
+modules_install:
+	make -I$(PWD) -C /lib/modules/$(KVERSION)/build M=$(PWD) modules_install
+
+clean:
+	make -I$(PWD) -C /lib/modules/$(KVERSION)/build M=$(PWD) clean
+
+unload:
+	sudo modprobe -r psmouse
+
+load: all unload
+	sudo insmod ./psmouse.ko
+
+restore: unload
+	sudo modprobe psmouse
+
+report:
+	dmesg | grep ALPS
+	cat /proc/bus/input/devices
+
+patch: backup alps.patch
+
+alps.patch:
+	diff -up alps.h.bkp alps.h >  $@; true
+	diff -up alps.c.bkp alps.c >> $@; true
+
+remove_backup:
+	rm *.bkp
+
+install_ra_hook: backup
+	./set_alps_ra_hook.sh install
+
+uninstal_ra_hook:
+	./set_alps_ra_hook.sh uninstall
+
+show_pkt: show_pkt.pl
+	sudo ./show_pkt.pl -c | less
+
+help:
+	@echo 'Available targets:'
+	@echo ''
+	@echo 'all (or empty)    compile psmouse driver'
+	@echo 'backup            back alps sub-driver source files up'
+	@echo 'clean             clean source up'
+	@echo 'unload            unload currently used psmouse driver (EUID 0 required)'
+	@echo 'load              load locally compiled psmouse driver (EUID 0 required)'
+	@echo 'restore           load installed psmouse driver (EUID 0 required)'
+	@echo 'report            try to obtain some information about ALPS HW from system'
+	@echo 'patch             create local patch (diff of the sub-driver source and backup)'
+	@echo 'remove_backup     delete sub-driver backup (BE CAUTIOUS!)'
+	@echo 'install_ra_hook   install RA hook to the psmouse driver source'
+	@echo 'uninstal_ra_hook  uninstall RA hook from the psmouse driver source'
+	@echo 'show_pkt          show and clear dumped packets (EUID 0 required)'
+	@echo 'help              show this help'
+	@echo ''
