@@ -8,7 +8,7 @@ Since ALPS Electric traditionally assumes dismissive position towards
 any requests for technical documentation, writing driver for touchpads
 and trackpoints they manufacture requires detailed reverse analysis
 of the communication protocol.
-At the time of writing this, no less than 6 different protocols are in use
+At the time of writing this, no less than 7 different protocols are in use
 for ALPS (dualpoint) touchpads.
 
 
@@ -66,7 +66,7 @@ $ make load
 The show_pkt target calls show_pkt.pl script used to grep the packets dump
 from the kernel ring buffer and visualise them.
 The script may also be used to test hypotheses and formulate packet decoding
-routines (as was done for the protocol v6).
+routines (as was done for the protocol v7).
 
 Typically, you touch the device, then check the packets produced:
 
